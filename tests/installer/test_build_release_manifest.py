@@ -113,12 +113,13 @@ class BuildManifestValidationTests(unittest.TestCase):
 
 
 class BuildManifestCliTests(unittest.TestCase):
-    def _run_cli(self, *args):
+    def _run_cli(self, *args, cwd: Path | None = None):
         return subprocess.run(
             [sys.executable, str(SCRIPT), *args],
             capture_output=True,
             text=True,
             check=False,
+            cwd=str(cwd) if cwd is not None else None,
         )
 
     def test_atomic_write_does_not_overwrite_without_force(self):
@@ -197,6 +198,30 @@ class BuildManifestCliTests(unittest.TestCase):
             manifest = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(manifest["version"], "0.2.0")
             self.assertFalse((output.parent / "release.json.tmp").exists())
+
+    def test_output_default_is_release_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cwd = Path(tmp)
+            completed = self._run_cli(
+                "--distribution-source",
+                "./",
+                "--skill-source",
+                "openconcierge",
+                "--version",
+                "0.1.0",
+                cwd=cwd,
+            )
+            self.assertEqual(
+                completed.returncode,
+                0,
+                msg=f"stdout={completed.stdout!r} stderr={completed.stderr!r}",
+            )
+            expected = cwd / "bootstrap" / "release.json"
+            self.assertTrue(expected.is_file())
+            manifest = json.loads(expected.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["version"], "0.1.0")
+            self.assertTrue((cwd / "bootstrap").is_dir())
+            self.assertFalse((cwd / "bootstrap" / "release.json.tmp").exists())
 
 
 if __name__ == "__main__":

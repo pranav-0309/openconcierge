@@ -118,8 +118,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--output",
-        required=True,
-        help="Destination path for the release.json file.",
+        default="bootstrap/release.json",
+        help="Destination path for the release.json file (default: bootstrap/release.json).",
     )
     parser.add_argument(
         "--force",

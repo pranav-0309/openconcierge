@@ -89,7 +89,8 @@ function Resolve-ManifestValue {
     if ([System.IO.Path]::IsPathRooted($resolved)) {
         return $resolved
     }
-    $manifestDir = Split-Path -Parent -LiteralPath $ManifestPath
+    $manifestDir = Split-Path -Parent -Path $ManifestPath
+    $manifestDir = [System.IO.Path]::GetFullPath($manifestDir)
     return [System.IO.Path]::GetFullPath((Join-Path $manifestDir $resolved))
 }
 

@@ -221,5 +221,72 @@ class SecretSafetyTests(PowerShellInstallerBase):
         self.assertNotIn("secret-tavily-value", result.stderr)
 
 
+class SourceResolutionTests(PowerShellInstallerBase):
+    def test_manifest_distribution_source_is_used_when_no_source_argument(self) -> None:
+        bootstrap_dir = self.tmp / "bootstrap"
+        bootstrap_dir.mkdir()
+        shutil.copy2(INSTALL_PS1, bootstrap_dir / "install.ps1")
+        for name in ("distribution.yaml", "SOUL.md"):
+            src = ROOT / name
+            if src.exists():
+                shutil.copy2(src, bootstrap_dir / name)
+        skills_dst = bootstrap_dir / "skills" / "openconcierge"
+        skills_dst.mkdir(parents=True)
+        src_skill = ROOT / "skills" / "openconcierge" / "SKILL.md"
+        if src_skill.exists():
+            shutil.copy2(src_skill, skills_dst / "SKILL.md")
+        manifest_path = bootstrap_dir / "release.json"
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    "distribution_source": "./",
+                    "skill_source": "openconcierge",
+                    "version": "0.1.0",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        env = os.environ.copy()
+        env["FAKE_HERMES_STATE"] = str(self.state_path)
+        env["HERMES_BIN"] = str(self.bin_dir / "hermes.cmd")
+        env["PATH"] = str(self.bin_dir) + os.pathsep + env.get("PATH", "")
+        result = subprocess.run(
+            [
+                PWSH,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(bootstrap_dir / "install.ps1"),
+                "-Mode",
+                "dedicated",
+                "-Yes",
+                "-NoDesktop",
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+
+        state = self._read_state()
+        self.assertEqual(
+            result.returncode,
+            0,
+            msg=f"stdout: {result.stdout!r}\nstderr: {result.stderr!r}",
+        )
+        install_calls = [
+            call
+            for call in state.get("calls", [])
+            if len(call) >= 2 and call[0] == "profile" and call[1] == "install"
+        ]
+        self.assertEqual(len(install_calls), 1, msg=f"calls: {state.get('calls')}")
+        self.assertEqual(
+            str(Path(install_calls[0][2]).resolve()),
+            str(bootstrap_dir.resolve()),
+        )
+        self.assertTrue(state.get("distribution_installed"))
+
+
 if __name__ == "__main__":
     unittest.main()
