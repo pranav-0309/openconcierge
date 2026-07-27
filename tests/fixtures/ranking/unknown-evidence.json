@@ -1,0 +1,21 @@
+{
+  "task": {
+    "budget": {"maximum": 100, "currency": "USD"},
+    "region": "US"
+  },
+  "candidates": [
+    {
+      "name": "Unverified Pillow",
+      "product_url": "https://example.test/unverified",
+      "seller_or_manufacturer": "Example Sleep",
+      "observed_price": 79,
+      "currency": "USD",
+      "observed_at": "2026-07-27",
+      "ships_to_region": "unknown",
+      "criteria": [
+        {"requirement": "latex-free", "importance": "must", "match": "unknown", "source_urls": []}
+      ],
+      "tradeoffs": []
+    }
+  ]
+}

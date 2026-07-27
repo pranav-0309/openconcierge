@@ -1,0 +1,45 @@
+{
+  "task": {
+    "budget": {"maximum": 100, "currency": "USD"},
+    "region": "US"
+  },
+  "candidates": [
+    {
+      "name": "Valid Cooling Pillow",
+      "product_url": "https://example.test/valid",
+      "seller_or_manufacturer": "Example Sleep",
+      "observed_price": 79,
+      "currency": "USD",
+      "observed_at": "2026-07-27",
+      "ships_to_region": true,
+      "criteria": [
+        {"requirement": "cooling", "importance": "core", "match": "strong", "source_urls": ["https://example.test/valid"]},
+        {"requirement": "side-sleeper support", "importance": "preference", "match": "partial", "source_urls": ["https://example.test/valid"]},
+        {"requirement": "latex-free", "importance": "must", "match": "strong", "source_urls": ["https://example.test/valid"]}
+      ],
+      "tradeoffs": ["Needs periodic refluffing"]
+    },
+    {
+      "name": "Over Budget Pillow",
+      "product_url": "https://example.test/expensive",
+      "seller_or_manufacturer": "Example Sleep",
+      "observed_price": 140,
+      "currency": "USD",
+      "observed_at": "2026-07-27",
+      "ships_to_region": true,
+      "criteria": [],
+      "tradeoffs": []
+    },
+    {
+      "name": "Unavailable Pillow",
+      "product_url": "https://example.test/unavailable",
+      "seller_or_manufacturer": "Example Sleep",
+      "observed_price": 80,
+      "currency": "USD",
+      "observed_at": "2026-07-27",
+      "ships_to_region": false,
+      "criteria": [],
+      "tradeoffs": []
+    }
+  ]
+}
