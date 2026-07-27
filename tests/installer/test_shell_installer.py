@@ -178,6 +178,21 @@ class DedicatedModeTests(ShellInstallerBase):
         )
         self.assertIn("search", result.stderr.lower())
 
+    def test_search_capability_match_is_case_insensitive(self) -> None:
+        self._set_state(tools_output="WEB ENABLED\nMCP_CUSTOM_SEARCH_SEARCH ENABLED")
+        result = self._run(
+            "--source", str(self.source_dir),
+            "--mode", "dedicated",
+            "--profile", "openconcierge",
+            "--yes",
+            "--no-desktop",
+        )
+        self.assertEqual(
+            result.returncode, 0,
+            msg=f"stdout: {result.stdout!r}\nstderr: {result.stderr!r}",
+        )
+        self.assertNotIn("no compatible web search tool", result.stderr.lower())
+
 
 class ExistingModeTests(ShellInstallerBase):
     def test_existing_mode_installs_skill(self) -> None:

@@ -240,8 +240,9 @@ fi
 
 tools_output="$("$HERMES_BIN" tools list --platform cli || true)"
 search_signal=0
+search_signal_text="$(printf '%s' "$tools_output" | tr '[:upper:]' '[:lower:]')"
 for keyword in web search mcp exa tavily brave duckduckgo serp firecrawl searx parallel xai; do
-  case "$tools_output" in
+  case "$search_signal_text" in
     *"$keyword"*) search_signal=1 ;;
   esac
 done
