@@ -85,6 +85,21 @@ class DistributionLayoutTests(unittest.TestCase):
         for path in ("distribution.yaml", "SOUL.md", "skills/openconcierge/"):
             self.assertTrue((ROOT / path).exists(), f"owned path {path!r} must exist on disk")
 
+    def test_soul_md_safety_commitments(self):
+        soul_path = ROOT / "SOUL.md"
+        self.assertTrue(soul_path.is_file(), "SOUL.md must exist")
+        body = soul_path.read_text(encoding="utf-8")
+
+        required_phrases = (
+            "Never invent products, prices, availability, ratings, specifications, or source claims.",
+            "Do not pressure the user, transact, reserve inventory, or claim that a volatile price or stock status is permanent.",
+            "Use the active Hermes search capabilities rather than requesting a particular provider.",
+            "Store stable shopping preferences only after the user confirms them, and do not persist sensitive constraints unless explicitly requested.",
+        )
+
+        missing = [phrase for phrase in required_phrases if phrase not in body]
+        self.assertEqual(missing, [], f"SOUL.md is missing safety commitments: {missing}")
+
 
 if __name__ == "__main__":
     unittest.main()
