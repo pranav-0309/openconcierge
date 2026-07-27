@@ -71,15 +71,20 @@ resolve_local_distribution() {
     local value
     value="$(python3 - "$SCRIPT_DIR/release.json" <<'PY' 2>/dev/null || true
 import json
+import os
 import sys
 
+manifest_dir = os.path.dirname(os.path.abspath(sys.argv[1]))
 with open(sys.argv[1], encoding="utf-8") as handle:
     data = json.load(handle)
 if not isinstance(data, dict):
     sys.exit(0)
 dist = data.get("distribution_source")
 if isinstance(dist, str) and dist:
-    print(dist)
+    if os.path.isabs(dist) or dist.startswith(("http://", "https://")):
+        print(dist)
+    else:
+        print(os.path.abspath(os.path.join(manifest_dir, dist)))
 PY
 )"
     if [ -n "$value" ]; then
@@ -98,15 +103,20 @@ resolve_skill_source() {
     local value
     value="$(python3 - "$SCRIPT_DIR/release.json" <<'PY' 2>/dev/null || true
 import json
+import os
 import sys
 
+manifest_dir = os.path.dirname(os.path.abspath(sys.argv[1]))
 with open(sys.argv[1], encoding="utf-8") as handle:
     data = json.load(handle)
 if not isinstance(data, dict):
     sys.exit(0)
 skill = data.get("skill_source")
 if isinstance(skill, str) and skill:
-    print(skill)
+    if os.path.isabs(skill) or skill.startswith(("http://", "https://")):
+        print(skill)
+    else:
+        print(os.path.abspath(os.path.join(manifest_dir, skill)))
 PY
 )"
     if [ -n "$value" ]; then

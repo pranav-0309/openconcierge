@@ -72,14 +72,35 @@ if (-not $ScriptDir) {
 }
 $RepoRoot = (Resolve-Path -LiteralPath (Join-Path $ScriptDir "..")).Path
 
+function Resolve-ManifestValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ManifestPath,
+        [Parameter(Mandatory = $true)]
+        [string]$Key
+    )
+    $manifest = Get-Content -LiteralPath $ManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $value = $manifest.$Key
+    if (-not $value) { return $null }
+    $resolved = [string]$value
+    if ($resolved -match '^(https?)://') {
+        return $resolved
+    }
+    if ([System.IO.Path]::IsPathRooted($resolved)) {
+        return $resolved
+    }
+    $manifestDir = Split-Path -Parent -LiteralPath $ManifestPath
+    return [System.IO.Path]::GetFullPath((Join-Path $manifestDir $resolved))
+}
+
 function Resolve-LocalDistribution {
     if ($Source) { return }
     $manifestPath = Join-Path $ScriptDir "release.json"
     if (Test-Path -LiteralPath $manifestPath) {
         try {
-            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($manifest.distribution_source) {
-                $Script:Source = [string]$manifest.distribution_source
+            $resolved = Resolve-ManifestValue -ManifestPath $manifestPath -Key 'distribution_source'
+            if ($resolved) {
+                $Script:Source = $resolved
                 return
             }
         }
@@ -98,9 +119,9 @@ function Resolve-SkillSource {
     $manifestPath = Join-Path $ScriptDir "release.json"
     if (Test-Path -LiteralPath $manifestPath) {
         try {
-            $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ($manifest.skill_source) {
-                $Script:SkillSource = [string]$manifest.skill_source
+            $resolved = Resolve-ManifestValue -ManifestPath $manifestPath -Key 'skill_source'
+            if ($resolved) {
+                $Script:SkillSource = $resolved
             }
         }
         catch {
