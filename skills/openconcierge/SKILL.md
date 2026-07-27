@@ -29,14 +29,7 @@ When the request is out of scope, decline briefly and offer to refer the user to
 
 Before asking a question, identify the decision it changes. If the answer would not change eligibility, ranking, safety, regional availability, budget, or product type, do not ask it. Stop asking when the brief is sufficient to search. Never ask for a known value again.
 
-Ask only when an answer can change:
-
-- Which products qualify for the brief.
-- The ranking materially.
-- The budget, currency, or regional availability.
-- A contradiction between requirements.
-- The safety or suitability of a recommendation.
-- The product type when the request leaves it ambiguous.
+See `references/interviewing.md` for the six concrete triggers and a one-line rationale per trigger.
 
 Do not ask generic intake questions, repeat known values, or continue questioning after a useful search is possible. Treat optional information as optional. Allow the user to say "use your judgment," skip a question, revise an answer, or change a requirement mid-task; in every case state the assumption you will use and label it in the final recommendation.
 
@@ -44,17 +37,9 @@ Detailed intent capture rules live in `references/interviewing.md`.
 
 ## Search Capability Resolution
 
-The skill does not require `web_search`, a named provider, a particular MCP server, or a provider API key in its metadata. Search capability is selected at runtime from the active Hermes profile.
+This skill does not require a specific search backend, MCP server, or API key in its metadata; see `references/research-and-evidence.md` for the full non-contract and the seven-step search-resolution order.
 
-Resolution order:
-
-1. Use Hermes canonical `web_search` first when it is available; Hermes selects the configured backend through its own `web.search_backend`/`web.backend` settings.
-2. Use `web_extract` for direct-page verification when available.
-3. If canonical search is absent or insufficient, call `tool_search` with a capability query such as `web search product search marketplace search`, then call `tool_describe` and `tool_call` for a compatible MCP/plugin tool.
-4. Accept any discoverable tool that takes a query and returns inspectable result URLs; do not match only on brand names.
-5. Use an installed fallback search skill when Hermes makes one available.
-6. Prefer the canonical backend and use one configured fallback after failure; do not fan out across all providers.
-7. Never ask for Exa, Tavily, SerpAPI, Serper, Brave, DuckDuckGo, or another key when Hermes already exposes the integration.
+Search capability is selected at runtime in this order — canonical Hermes search, optional `web_extract`, deferred MCP/plugin tool discovery, an installed fallback search skill, and one configured fallback after failure; see `references/research-and-evidence.md` for the full rules.
 
 Detailed discovery, evidence, and candidate-structure rules live in `references/research-and-evidence.md`.
 
@@ -84,20 +69,7 @@ Do not invent criterion judgments. Every scored value must trace to a source-bac
 
 ## Recommendation Format
 
-A completed recommendation contains:
-
-1. A short statement of the understood need.
-2. Any assumptions the user skipped or left unknown, labeled in plain language.
-3. Two to four qualified options, when available.
-4. For each option:
-   - Observed price, currency, and observation date.
-   - Seller or manufacturer.
-   - Why it fits, anchored to the criteria and `score_breakdown`.
-   - Important trade-offs.
-   - Unverified details.
-   - Direct source links.
-5. A concise comparison explaining why the top option ranks first.
-6. A reminder that price and stock are volatile and should be verified before purchase.
+A completed recommendation contains the understood need, labeled assumptions, two to four qualified options, per-option price/seller/fit/trade-offs/sources, a comparison, and a volatility reminder; see `references/recommendations.md` for the full output contract, including the fewer-than-two rule.
 
 If fewer than two candidates qualify, do not manufacture a shortlist. Present the qualified result, if any, and explain which hard constraints eliminated the rest. Offer to relax a constraint if the user wants more options.
 
@@ -107,12 +79,7 @@ Output language and detail length follow the conventions documented in `referenc
 
 OpenConcierge uses Hermes memory only. Stable shopping preferences are persisted only after the user explicitly confirms them. Transient task details, browsing history, and unconfirmed inferences are never promoted to long-term preferences. Sensitive constraints such as health conditions, allergies, and disability-related needs are used for the current task but are not stored as durable preferences unless the user explicitly asks for that behavior.
 
-The skill supports these `/openconcierge` arguments and their natural-language equivalents:
-
-- `show preferences` — list currently stored shopping preferences.
-- `correct preference` — update or replace a stored preference after confirmation.
-- `forget preference` — remove a single named shopping preference.
-- `forget all preferences` — remove every namespaced shopping preference.
+The full `/openconcierge` command list lives in `references/memory-and-privacy.md`.
 
 Detailed retention, namespace, and deletion rules live in `references/memory-and-privacy.md`.
 
