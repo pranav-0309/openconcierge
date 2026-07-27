@@ -16,12 +16,23 @@ if len(args) >= 2 and args[0] in {"-p", "--profile"}:
     args = args[2:]
 
 if args[:1] == ["doctor"]:
+    exit_code = int(state.get("doctor_exit", 0))
+    if exit_code != 0:
+        print("Hermes doctor: unhealthy", file=sys.stderr)
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        raise SystemExit(exit_code)
     print("Hermes doctor: healthy")
 elif args[:2] == ["profile", "show"]:
     print("Profile: openconcierge\nGateway: stopped\nSkills: openconcierge")
 elif args[:2] == ["profile", "list"]:
     print("default\ncoder\nopenconcierge")
 elif args[:2] == ["profile", "create"]:
+    exit_code = int(state.get("profile_create_exit", 0))
+    if exit_code != 0:
+        target = args[2] if len(args) > 2 else ""
+        print(f"Profile {target} already exists", file=sys.stderr)
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        raise SystemExit(exit_code)
     state["profile_created"] = True
     print("Profile created")
 elif args[:2] == ["profile", "install"]:
@@ -33,7 +44,11 @@ elif args[:2] == ["profile", "update"]:
 elif args[:2] == ["skills", "list"]:
     print("openconcierge")
 elif args[:2] == ["tools", "list"]:
-    print("web enabled\nmcp_custom_search_search enabled")
+    override = state.get("tools_output")
+    if override is not None:
+        print(override)
+    else:
+        print("web enabled\nmcp_custom_search_search enabled")
 elif args[:2] == ["skills", "install"]:
     state["skill_installed"] = True
     print("Skill installed")
