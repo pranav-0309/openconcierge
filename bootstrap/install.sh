@@ -182,15 +182,24 @@ check_hermes() {
 install_official_hermes() {
   local installer
   installer="$(mktemp)"
-  curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+  if ! curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "https://hermes-agent.nousresearch.com/install.sh" \
-    --output "$installer" || fail 'Could not download the official Hermes installer.' 3
-  bash "$installer" || fail 'The official Hermes installer did not complete.' 3
+    --output "$installer"; then
+    rm -f "$installer"
+    fail 'Could not download the official Hermes installer.' 3
+  fi
+  if ! bash "$installer"; then
+    rm -f "$installer"
+    fail 'The official Hermes installer did not complete.' 3
+  fi
   rm -f "$installer"
 }
 
 if ! has_hermes; then
-  if [ "$ASSUME_YES" -eq 0 ] && [ -t 0 ]; then
+  if [ "$ASSUME_YES" -eq 0 ]; then
+    if [ ! -t 0 ]; then
+      fail "Hermes is not on PATH and --yes was not provided. Re-run with --yes to allow the installer to fetch the official Hermes installer, or install Hermes first." 2
+    fi
     printf 'OpenConcierge needs Hermes to continue. Install Hermes now? [y/N] '
     confirm=""
     read -r confirm || true
@@ -211,16 +220,16 @@ registration_failed() {
 }
 
 if [ "$MODE" = "dedicated" ]; then
-  if "$HERMES_BIN" profile create "$PROFILE" --clone-from "$SOURCE_PROFILE"; then
-    "$HERMES_BIN" profile install "$SOURCE" --name "$PROFILE" --alias --force --yes
-  else
-    create_status=$?
+  if "$HERMES_BIN" profile show "$PROFILE" >/dev/null 2>&1; then
     if [ "$REPAIR" -eq 1 ] && [ "$ASSUME_YES" -eq 1 ]; then
       "$HERMES_BIN" profile update "$PROFILE" --yes
     else
       fail "Profile '$PROFILE' already exists. Re-run with --repair --yes to refresh it, or pick a different --profile name." 2
     fi
+  else
+    "$HERMES_BIN" profile create "$PROFILE" --clone-from "$SOURCE_PROFILE"
   fi
+  "$HERMES_BIN" profile install "$SOURCE" --name "$PROFILE" --alias --force --yes
   if ! "$HERMES_BIN" profile show "$PROFILE" >/dev/null; then
     registration_failed
   fi

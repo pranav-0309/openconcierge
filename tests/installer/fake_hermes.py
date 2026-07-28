@@ -23,6 +23,15 @@ if args[:1] == ["doctor"]:
         raise SystemExit(exit_code)
     print("Hermes doctor: healthy")
 elif args[:2] == ["profile", "show"]:
+    target = args[2] if len(args) > 2 else ""
+    created = state.get("created_profiles", [])
+    exit_code = int(state.get("profile_show_exit", 0))
+    if target in created:
+        exit_code = 0
+    if exit_code != 0:
+        print(f"Profile {target} not found", file=sys.stderr)
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        raise SystemExit(exit_code)
     print("Profile: openconcierge\nGateway: stopped\nSkills: openconcierge")
 elif args[:2] == ["profile", "list"]:
     print("default\ncoder\nopenconcierge")
@@ -34,6 +43,8 @@ elif args[:2] == ["profile", "create"]:
         state_path.write_text(json.dumps(state), encoding="utf-8")
         raise SystemExit(exit_code)
     state["profile_created"] = True
+    target = args[2] if len(args) > 2 else ""
+    state.setdefault("created_profiles", []).append(target)
     print("Profile created")
 elif args[:2] == ["profile", "install"]:
     state["distribution_installed"] = True
