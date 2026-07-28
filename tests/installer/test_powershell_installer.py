@@ -4,7 +4,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -41,6 +40,7 @@ class PowerShellInstallerBase(unittest.TestCase):
         )
         self.state_path = self.tmp / "fake_hermes_state.json"
         self.state_path.write_text(json.dumps({}), encoding="utf-8")
+        self._set_state(profile_show_exit=1)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -173,13 +173,13 @@ class MissingHermesTests(PowerShellInstallerBase):
             "-NoDesktop",
             handoff_env=handoff_env,
         )
-        sys.stderr.write("STDOUT: " + result.stdout + "\n")
-        sys.stderr.write("STDERR: " + result.stderr + "\n")
-        sys.stderr.write("RC: " + str(result.returncode) + "\n")
+        downloaded = (self.tmp / "downloaded-path.txt").read_text(encoding="utf-8").strip()
         self.assertEqual(result.returncode, 3)
+        self.assertFalse(Path(downloaded).exists())
+        self.assertEqual(self._read_state().get("calls", []), [])
 
-    @unittest.skip("install.ps1 only prompts for confirmation when stdin is a TTY; piped stdin exits with code 3 instead of 2. Documented as a gap.")
-    def test_declining_missing_hermes_handoff_returns_two(self) -> None:
+    def test_missing_hermes_handoff_cancelled_returns_two(self) -> None:
+        self._set_state(profile_show_exit=1)
         handoff_env = self._prepare_missing_handoff()
         result = self._run_missing(
             "-Source", str(self.source_dir),
@@ -229,7 +229,7 @@ class DedicatedModeTests(PowerShellInstallerBase):
         self.assertFalse(state.get("desktop_launched", False))
 
     def test_repair_with_yes_calls_update(self) -> None:
-        self._set_state(profile_create_exit=1)
+        self._set_state(profile_show_exit=0)
         result = self._run(
             "-Source", str(self.source_dir),
             "-Mode", "dedicated",
@@ -244,11 +244,12 @@ class DedicatedModeTests(PowerShellInstallerBase):
             msg=f"stdout: {result.stdout!r}\nstderr: {result.stderr!r}",
         )
         self.assertTrue(state.get("profile_updated"))
+        self.assertFalse(state.get("profile_created", False))
         install_calls = [
             call for call in state.get("calls", [])
             if len(call) >= 2 and call[0] == "profile" and call[1] == "install"
         ]
-        self.assertEqual(install_calls, [])
+        self.assertEqual(len(install_calls), 1)
 
     def test_second_dedicated_run_with_repair_updates_without_create(self) -> None:
         first = self._run(
@@ -259,7 +260,7 @@ class DedicatedModeTests(PowerShellInstallerBase):
             "-NoDesktop",
         )
         self.assertEqual(first.returncode, 0)
-        self._set_state(calls=[], profile_create_exit=1)
+        self._set_state(calls=[], profile_show_exit=0)
         second = self._run(
             "-Source", str(self.source_dir),
             "-Mode", "dedicated",
@@ -275,9 +276,11 @@ class DedicatedModeTests(PowerShellInstallerBase):
         )
         self.assertTrue(state.get("profile_updated"))
         create_calls = [call for call in state["calls"] if call[:2] == ["profile", "create"]]
-        self.assertEqual(len(create_calls), 1)
+        self.assertEqual(create_calls, [])
+        update_calls = [call for call in state["calls"] if call[:2] == ["profile", "update"]]
+        self.assertEqual(len(update_calls), 1)
         install_calls = [call for call in state["calls"] if call[:2] == ["profile", "install"]]
-        self.assertEqual(install_calls, [])
+        self.assertEqual(len(install_calls), 1)
 
     def test_second_dedicated_run_without_repair_returns_two(self) -> None:
         first = self._run(
@@ -288,7 +291,7 @@ class DedicatedModeTests(PowerShellInstallerBase):
             "-NoDesktop",
         )
         self.assertEqual(first.returncode, 0)
-        self._set_state(calls=[], profile_create_exit=1)
+        self._set_state(calls=[], profile_show_exit=0)
         second = self._run(
             "-Source", str(self.source_dir),
             "-Mode", "dedicated",
@@ -320,6 +323,7 @@ class DedicatedModeTests(PowerShellInstallerBase):
 
 class ExistingModeTests(PowerShellInstallerBase):
     def test_existing_mode_installs_skill(self) -> None:
+        self._set_state(profile_show_exit=0)
         result = self._run(
             "-Source", str(self.source_dir),
             "-SkillSource", "openconcierge",

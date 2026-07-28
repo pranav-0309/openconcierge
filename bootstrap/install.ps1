@@ -185,7 +185,7 @@ switch ($Mode) {
 if (-not (Test-HermesAvailable)) {
     if (-not $Yes) {
         if ([Console]::IsInputRedirected) {
-            Stop-Setup "Hermes is not on PATH. Run with -Yes to allow the installer to fetch the official Hermes installer, or install Hermes first." 3
+            Stop-Setup "Hermes is not on PATH and -Yes was not provided. Re-run with -Yes to allow the installer to fetch the official Hermes installer, or install Hermes first." 2
         }
         Write-Host "OpenConcierge needs Hermes to continue. Install Hermes now? [y/N]"
         $confirm = Read-Host
@@ -232,15 +232,9 @@ function Test-SearchCapability {
 
 switch ($Mode) {
     "dedicated" {
-        $profileCreateOutput = & $HermesBin profile create $Profile --clone-from $SourceProfile
-        $createExit = $LASTEXITCODE
-        if ($createExit -eq 0) {
-            & $HermesBin profile install $Source --name $Profile --alias --force --yes
-            if ($LASTEXITCODE -ne 0) {
-                Stop-Setup "Hermes rejected the distribution install for profile '$Profile'." 3
-            }
-        }
-        else {
+        $null = & $HermesBin profile show $Profile 2>$null
+        $showExit = $LASTEXITCODE
+        if ($showExit -eq 0) {
             if ($Repair -and $Yes) {
                 & $HermesBin profile update $Profile --yes
                 if ($LASTEXITCODE -ne 0) {
@@ -250,6 +244,17 @@ switch ($Mode) {
             else {
                 Stop-Setup "Profile '$Profile' already exists. Re-run with -Repair -Yes to refresh it, or pick a different -Profile name." 2
             }
+        }
+        else {
+            $profileCreateOutput = & $HermesBin profile create $Profile --clone-from $SourceProfile
+            if ($LASTEXITCODE -ne 0) {
+                Stop-Setup "Hermes rejected the profile create for '$Profile'." 3
+            }
+        }
+
+        & $HermesBin profile install $Source --name $Profile --alias --force --yes
+        if ($LASTEXITCODE -ne 0) {
+            Stop-Setup "Hermes rejected the distribution install for profile '$Profile'." 3
         }
 
         $showOutput = & $HermesBin profile show $Profile
