@@ -182,10 +182,16 @@ check_hermes() {
 install_official_hermes() {
   local installer
   installer="$(mktemp)"
-  curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+  if ! curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "https://hermes-agent.nousresearch.com/install.sh" \
-    --output "$installer" || fail 'Could not download the official Hermes installer.' 3
-  bash "$installer" || fail 'The official Hermes installer did not complete.' 3
+    --output "$installer"; then
+    rm -f "$installer"
+    fail 'Could not download the official Hermes installer.' 3
+  fi
+  if ! bash "$installer"; then
+    rm -f "$installer"
+    fail 'The official Hermes installer did not complete.' 3
+  fi
   rm -f "$installer"
 }
 
