@@ -1,236 +1,235 @@
-# PRD: OpenConcierge — AI Shopping Assistant (Hermes Agent Backend)
+# PRD: OpenConcierge — Source-Backed Shopping Concierge for Hermes Agent
+
+> **Status:** Approved. Aligned with the approved design at `docs/superpowers/specs/2026-07-27-openconcierge-hermes-addon-design.md` and the implementation plans under `docs/superpowers/plans/`.
 
 ## 1. Overview
 
-**Product name:** OpenConcierge (working title)
-**One-liner:** An open-source, self-hostable, chat-native AI shopping assistant that interviews users about what they want to buy, researches the market, and recommends the best product for their needs and budget — available on every major messaging platform, powered by any LLM/search stack the operator chooses.
+**Product name:** OpenConcierge.
+
+**One-liner:** An open-source Hermes Agent profile distribution and skill that interviews users about what they want to buy, researches the live web through whatever search integration the user's Hermes profile already exposes, and recommends the best product for their needs and budget.
 
 **Inspiration:** Zamana, a personal shopping assistant currently offered on iMessage, which chats with users, asks clarifying questions, and does deep research to find the right product at the right price.
 
-**Core differentiator of this OSS version:** Full provider independence (bring-your-own LLM, bring-your-own search) and multi-platform delivery via **Hermes Agent** as the underlying agent/gateway framework, instead of a single closed iMessage-only product.
+**Core differentiator:** OpenConcierge is a Hermes-native add-on. Hermes owns the model, the gateways, the memory, the search backends, MCP, sessions, profiles, and the desktop UI. OpenConcierge owns only the shopping conversation, evidence rules, deterministic ranking, and a guided installer. Users pick up OpenConcierge the same way they pick up any Hermes skill — without forking, hosting, or replacing Hermes.
 
 ## 2. Goals
 
-- Let anyone message the assistant on their platform of choice (Telegram, WhatsApp, Discord, Slack, Signal, WeCom/Lark) and get the same shopping-expert experience.
+- Make it possible for a non-technical user to add a source-backed shopping concierge to Hermes with a single command on Windows, macOS, or Linux.
 - Elicit real user needs through conversation instead of requiring structured search forms.
-- Perform deep research (web + product search) to shortlist and rank products against the user's stated needs and budget.
-- Remember user preferences across sessions to improve future recommendations.
-- Allow operators to plug in any LLM provider (OpenAI, Anthropic, OpenRouter, local models via Ollama/vLLM) and any search/product provider.
-- Ship as an open-source, self-hostable project with clear extension points for community contributions.
+- Research the live web through the user's existing Hermes search configuration and rank products with a transparent, deterministic scoring rule.
+- Persist stable shopping preferences so future tasks can skip redundant questions, with user-controlled view, correct, and forget flows.
+- Reuse any compatible search integration already exposed by Hermes — Hermes web search, Hermes web extract, an installed fallback search skill, or any discoverable MCP/plugin search tool — without configuring a provider inside OpenConcierge.
 
-## 3. Non-Goals
+## 3. Non-Goals (v1)
 
-- Building a proprietary marketplace or handling payments/checkout in v1.
-- Guaranteeing price-matching or purchasing on the user's behalf in v1 (assistant recommends and links out; it does not transact).
-- Building custom LLM training/fine-tuning pipelines.
-- Supporting every possible chat platform on day one — start with the highest-leverage set and expand via Hermes's existing gateway support.
+OpenConcierge will not include any of the following in v1. Each is gated on a measured failure of the native design.
+
+- A separate OpenConcierge desktop, web, or mobile application. Hermes Desktop is the everyday UI.
+- A standalone OpenConcierge backend or agent loop. OpenConcierge runs inside the user's Hermes profile.
+- A custom chat gateway or messaging-channel adapter. Hermes owns channels.
+- A web chat implementation, browser extension, or webhook receiver.
+- An OpenConcierge-owned LLM-provider abstraction, `LLMProvider`, `SearchProvider`, or `ProductProvider` interface.
+- A hosted product-search API integration, MCP server, or background sidecar.
+- A custom OpenConcierge database, vector store, memory service, or telemetry service.
+- Product-scraping infrastructure, affiliate links, checkout, payments, or inventory guarantees.
+- Category-specific question packs ("pillow pack", "laptop pack", etc.).
+- WhatsApp onboarding, Telegram-bot setup automation beyond a printed handoff message, or async research workers.
+- A token-cost dashboard or per-task cost counter.
+- A fixed maximum number of clarifying questions.
 
 ## 4. Target Users
 
-- **End users:** People who want expert-level shopping research without doing it themselves — e.g., finding the right pillow, laptop, mattress, or gift.
-- **Self-hosters / operators:** Developers or small teams who want to run their own instance of the assistant, connected to their preferred AI/search stack, for personal use, a community, or a niche shopping vertical.
-- **Contributors:** Open-source developers who want to add new provider integrations (LLMs, search APIs, marketplaces) or new messaging channels.
+- **End users:** People who want expert-level shopping research without doing it themselves — for example finding the right pillow, laptop, mattress, or gift. They reach OpenConcierge through whichever Hermes channel they already use (Telegram, Discord, Slack, WhatsApp, etc.) or directly inside Hermes Desktop.
+- **Self-hosters / operators:** Hermes users who want a shopping-focused profile alongside their existing profile. They pick "Dedicated concierge" or "Add shopping to my current agent" during installation.
+- **Contributors:** Open-source developers who want to extend OpenConcierge with category packs, additional reference fixtures for the ranking helper, or installer improvements. Core shopping behavior stays in the official distribution.
 
 ## 5. Core User Story
 
 > "I'm trying to find a new pillow because the one I'm using hurts my neck, I'm not getting sleepy easily with it, and it's always hot."
 
-The assistant should:
-1. Parse this into a structured need (category: pillow; problems: neck pain, poor cooling, sleep onset difficulty).
-2. Ask 1–3 targeted follow-up questions (sleep position, budget, region/delivery preference, known allergies).
-3. Research pillow types that solve neck pain + heat retention (e.g., cooling gel, contoured memory foam, breathable covers).
-4. Search live product listings matching those criteria and the user's budget.
-5. Rank and present 2–4 options with a short rationale and trade-offs, plus purchase links.
-6. Store the user's preferences (e.g., "prefers cooling materials," "sleeps on side," "budget-conscious") for future tasks.
+OpenConcierge should:
+
+1. Parse the message into a structured in-conversation shopping brief (category, problems, must-haves, preferences, avoid list, budget, region).
+2. Ask follow-up questions whose answers can change eligibility, ranking, budget, region, safety, or product type. Stop asking once a useful search is possible. Accept "use your judgment" and treat revisions at any time.
+3. Research the live web through whatever search capability the user's Hermes profile already exposes. OpenConcierge never requests a specific provider.
+4. Verify each shortlisted candidate against a direct product or manufacturer page when possible and label inaccessible, stale, conflicting, or absent facts as unknown.
+5. Apply hard filters (maximum budget, regional availability, explicit exclusions, must-have features, delivery deadlines) before scoring.
+6. Rank the remaining candidates with a transparent weighted scoring rule (`strong`/`partial`/`none`/`unknown` × `must`/`core`/`preference`/`nice`) and present 2–4 sourced options with rationale, trade-offs, unverified details, and direct links.
+7. Persist confirmed stable preferences (preferred brands, common sizing, region, currency, budget sensitivity) for future tasks and never auto-persist sensitive health, allergy, or disability constraints.
 
 ## 6. System Architecture
 
-### 6.1 Why Hermes Agent
+### 6.1 Ownership boundary
 
-Hermes Agent is chosen as the backend because it already provides:
-- A **multi-platform gateway** connecting a single agent process to 7+ chat platforms (Telegram, Discord, Slack, WhatsApp, Signal, Lark, WeCom).
-- **Model-agnostic** LLM routing (OpenAI, Anthropic, OpenRouter with 200+ models, and self-hosted backends like Ollama/vLLM/SGLang).
-- A **skill system** that persists reusable "skill documents" generated from completed tasks, enabling the agent to improve at recurring task types (e.g., "how to shop for pillows") over time.
-- A self-hosted, SQLite-backed session store, avoiding a mandatory managed-cloud dependency.
+Hermes Agent owns:
 
-This means the shopping-assistant-specific work is mostly: (a) defining a shopping "persona" and instruction set, (b) building/integrating research tools, and (c) building the ranking/explanation logic — not re-implementing chat gateways or LLM routing.
+- The desktop, CLI, TUI, and messaging interfaces.
+- LLM provider configuration and model routing.
+- Search backends (canonical web search, web extract), MCP servers, and progressive tool discovery.
+- Profiles, sessions, memory, and state.
+- Gateway processes and channel adapters.
+- Skill discovery, installation, and updates.
+- Provider credentials and secret storage.
 
-### 6.2 High-Level Diagram (textual)
+OpenConcierge owns:
 
-```
-[Telegram] [WhatsApp] [Discord] [Slack] [Signal] [Web Chat]
-        \      |         |        |        |      /
-         \_____|_________|________|________|_____/
-                        |
-                Hermes Agent Gateway
-                        |
-              OpenConcierge Shopping Agent (skills + persona)
-                        |
-        -----------------------------------------
-        |               |                       |
-   LLM Provider    Search/Product Tools     Memory Store
- (pluggable via    (pluggable via MCP/      (SQLite / Postgres
-  Hermes config)    tool interface)          + optional vector DB)
+- The OpenConcierge persona (`SOUL.md`) for the dedicated profile.
+- The provider-neutral `openconcierge` skill (`SKILL.md`) and four reference documents.
+- The deterministic ranking helper (`skills/openconcierge/scripts/rank_candidates.py`).
+- The guided installer (`bootstrap/install.sh` for macOS/Linux, `bootstrap/install.ps1` for Windows) plus the release-manifest generator.
+- The release manifest (`bootstrap/release.json`) that ships distribution and skill source URLs.
+
+OpenConcierge will not fork, embed, proxy, or recreate the Hermes runtime.
+
+### 6.2 High-level diagram
+
+```text
+Hermes Desktop / CLI / TUI / configured gateway
+                         |
+                 Hermes profile
+          (SOUL + OpenConcierge skill)
+                         |
+        Hermes model, memory, and tool registry
+                         |
+   canonical search | fallback skill | MCP/plugin search
 ```
 
 ### 6.3 Components
 
-| Component | Responsibility | Notes |
+| Owner | Component | Responsibility |
 |---|---|---|
-| Hermes Agent Gateway | Normalizes messages across chat platforms into a single agent loop | Existing Hermes functionality, configured not rebuilt |
-| OpenConcierge Persona/Instructions | Defines tone, goals, question style, safety rules | Markdown/config files loaded into Hermes agent context |
-| Requirement Extraction Skill | Converts free text into a structured `ShoppingTask` | Implemented as a Hermes skill using LLM function-calling |
-| Follow-up Question Skill | Decides what's missing and asks targeted questions | Category-specific question templates + LLM fallback |
-| Research & Search Tools | Calls external search/product APIs | Implemented as MCP tools or Hermes-native tools |
-| Ranking & Explanation Skill | Filters/scores products, explains trade-offs | Deterministic scoring + LLM-generated explanation |
-| Memory Store | Persists user profile, preferences, past tasks | SQLite by default; Postgres/vector DB optional |
-| Provider Config Layer | Lets operator choose LLM + search provider | Environment/config-driven, following Hermes's provider model |
+| Hermes | Desktop / CLI / TUI / gateway | All chat-platform surfaces |
+| Hermes | Model routing and credentials | LLM provider configuration |
+| Hermes | Canonical search, MCP, plugin tools | Any search capability already visible to the profile |
+| Hermes | Profiles, sessions, memory | Persistent and in-conversation state |
+| Hermes | Skill discovery, install, update | Where OpenConcierge ships |
+| OpenConcierge | `distribution.yaml` | Hermes profile-distribution manifest, ownership boundary |
+| OpenConcierge | `SOUL.md` | Dedicated profile identity, safety commitments |
+| OpenConcierge | `skills/openconcierge/SKILL.md` | Provider-neutral skill entry point |
+| OpenConcierge | `skills/openconcierge/references/` | Interviewing, research/evidence, recommendation, memory/privacy |
+| OpenConcierge | `scripts/rank_candidates.py` | Deterministic ranking and filtering |
+| OpenConcierge | `bootstrap/install.sh` and `install.ps1` | Cross-platform guided installer |
+| OpenConcierge | `bootstrap/build-release-manifest.py` | Release-manifest generator |
+| OpenConcierge | `bootstrap/release.json` (generated at release time, not committed) | Distribution and skill source URLs |
 
 ## 7. Functional Requirements
 
-### 7.1 Conversation & Requirement Capture
-- FR1: The agent must detect shopping intent from free-form natural language across supported platforms.
-- FR2: The agent must extract a structured `ShoppingTask` (category, problems, must-haves, nice-to-haves, budget, region, deadline) from the conversation.
-- FR3: The agent must ask clarifying questions only for missing high-value fields (avoid over-questioning); category-specific templates should exist for common verticals (pillows, mattresses, laptops, shoes, gifts).
-- FR4: The agent must support multi-turn refinement (user can correct/add requirements at any point).
-
-### 7.2 Research & Ranking
-- FR5: The agent must call at least one external search/product-data tool to gather live candidate products.
-- FR6: The agent must normalize product data into a common schema (title, price, currency, seller, rating, specs, shipping/delivery info, URL).
-- FR7: The agent must apply hard filters (budget ceiling, region availability, explicit must-haves) before ranking.
-- FR8: The agent must score remaining candidates using a transparent, explainable scoring method (not a black box), combining requirement match, rating, and price.
-- FR9: The agent must present a shortlist (2–4 items) with a plain-language rationale per item and visible trade-offs.
-
-### 7.3 Personalization & Memory
-- FR10: The agent must persist user preferences derived from conversations and choices (e.g., preferred brands, sizing, allergies, budget sensitivity).
-- FR11: The agent must reuse stored preferences in future shopping tasks without re-asking already-known information, unless the user indicates a change.
-- FR12: Users must be able to view and delete their stored profile/preference data (privacy requirement).
-
-### 7.4 Multi-Platform Delivery
-- FR13: The same agent logic must be accessible from at least Telegram and WhatsApp at v1 launch, using Hermes's existing channel adapters.
-- FR14: Message formatting (links, lists, buttons where supported) must degrade gracefully on platforms with limited rich-message support.
-- FR15: A web chat interface should be available for platforms/testing where no messaging account is required.
-
-### 7.5 Extensibility (Bring-Your-Own AI/Search)
-- FR16: The system must allow operators to configure their LLM provider (e.g., OpenAI, Anthropic, OpenRouter, local Ollama/vLLM) via configuration, without code changes, using Hermes's existing model-routing support.
-- FR17: The system must expose a documented tool/plugin interface (ideally MCP-based) so contributors can add new search or product-data providers without modifying core agent logic.
-- FR18: Default reference implementations should be provided for at least one hosted LLM provider and one hosted search/product provider, to ensure the project works out-of-the-box.
+1. **Guided setup for users with or without Hermes on Windows, macOS, and Linux.** The installer detects Hermes, hands off to the official Hermes installation when needed, and never modifies Hermes internals.
+2. **Dedicated-profile installation through a Hermes profile distribution.** Creates an isolated OpenConcierge personality and memory space via `hermes profile install` and `distribution_owned`.
+3. **Existing-profile installation through the OpenConcierge skill alone.** Preserves the user's identity, provider, memory, and gateway configuration.
+4. **Unlimited but decision-relevant clarifying questions.** Stop asking once a useful search is possible. Accept "use your judgment" and allow mid-task revisions.
+5. **Provider-neutral search resolution.** Prefer Hermes `web_search`, use `web_extract` when available, then progressive MCP/plugin tool discovery, then an installed fallback search skill. Never require a specific provider or API key.
+6. **Source-backed candidate evidence and deterministic filtering and ranking.** Hard filters, weighted soft scoring, source-URL requirements, and unknown-aware output.
+7. **Recommendation trade-offs, uncertainty, and observed dates.** Never fabricate products, prices, availability, ratings, or specifications.
+8. **Explicit-confirmation preference memory with namespaced deletion.** Support `show preferences`, `correct preference`, `forget preference`, and `forget all preferences`. Do not auto-persist sensitive health, allergy, or disability constraints.
+9. **Passive installation verification.** No model prompt, web search, gateway launch, or credential read at install time. Installation and updates do not transmit or log credentials.
+10. **Clear failure behavior.** No fabricated results. When no compatible search capability exists, direct the user to Hermes Desktop tools/skills/MCP settings without prescribing a provider.
 
 ## 8. Non-Functional Requirements
 
-- **NFR1 (Self-hostable):** The full stack must run via a single docker-compose (or equivalent) setup for local/self-hosted deployment.
-- **NFR2 (Latency):** Initial acknowledgment/response to a user message should occur within ~3 seconds even if deep research runs asynchronously with a "still researching" follow-up message.
-- **NFR3 (Cost transparency):** Operators should be able to see estimated LLM/search API cost per shopping task (token/call counters), given usage-based pricing of most providers.
-- **NFR4 (Privacy):** No user data should be sent to third-party providers beyond what's required for the active LLM/search call; profile data must be stored locally by default (no mandatory external telemetry).
-- **NFR5 (Reliability):** If a configured LLM or search provider fails, the system should surface a clear error to the user rather than hallucinate results.
-- **NFR6 (Testability):** Core requirement-extraction, filtering, and ranking logic must be unit-testable independent of any live LLM or search call (via mocked providers).
+- **NFR1 (Hermes-native self-hosting).** No OpenConcierge-managed cloud service is required. Operators install Hermes and then OpenConcierge; both run locally.
+- **NFR2 (Credentials stay in Hermes).** OpenConcierge never reads, writes, or transmits credentials. Bootstrap logs and installer scripts redact any secret-shaped value.
+- **NFR3 (Source-of-truth comes from official Hermes installers).** Bootstrap downloads only from `https://hermes-agent.nousresearch.com/`. The OpenConcierge distribution is fetched from a release-operator-controlled git or HTTP source recorded in `bootstrap/release.json`.
+- **NFR4 (Testability without live providers).** Ranking, installer state, and skill behavior are testable with mocked providers and a fake Hermes CLI. No unit test makes a network call.
+- **NFR5 (Privacy).** No third-party telemetry. Stable shopping preferences live in Hermes memory and can be deleted at any time.
+- **NFR6 (Determinism).** Ranking output is stable for identical input. Sort order is `fit_score desc → price asc → case-insensitive name → URL`.
+- **NFR7 (Portability).** The installer runs on Windows (PowerShell 7), macOS, and Linux (Bash) from the same source. Exit codes are stable: 0 success, 2 cancellation, 3 command failure, 4 registration failure.
 
-## 9. Data Model (Initial Draft)
+## 9. Data Model
+
+OpenConcierge does not own a database. The structured shapes below are in-conversation working state and Hermes memory entries.
+
+### 9.1 Shopping brief (in-conversation)
 
 ```yaml
-User:
-  id: string
-  platform_ids: { telegram: string?, whatsapp: string?, ... }
-  created_at: datetime
-
-UserProfile:
-  user_id: string
-  preferences: json      # e.g. { "brand_avoid": ["X"], "size": "EU 42", "budget_sensitivity": "high" }
-  constraints: json      # e.g. { "region": "UAE", "allergies": ["latex"] }
-  updated_at: datetime
-
-ShoppingTask:
-  id: string
-  user_id: string
-  category: string
-  problems: string[]
-  must_haves: string[]
-  nice_to_haves: string[]
-  budget: number?
-  currency: string?
-  region: string?
-  status: enum[collecting, researching, ready, closed]
-  created_at: datetime
-
-ProductCandidate:
-  id: string
-  task_id: string
-  title: string
-  price: number
-  currency: string
-  seller: string
-  rating: number?
-  specs: json
-  url: string
-  score: number
-  score_breakdown: json
-
-Recommendation:
-  id: string
-  task_id: string
-  product_candidate_ids: string[]
-  explanation: string
-  presented_at: datetime
+category: string
+problem_to_solve: string
+intended_user: string
+must_haves: string[]
+preferences: string[]
+avoid: string[]
+budget:
+  minimum: number | null
+  maximum: number | null
+  currency: string | null
+region: string | null
+deadline: string | null
+existing_context: string[]
 ```
 
-## 10. Provider Interfaces (Pluggability Contract)
+### 9.2 Candidate evidence (in-conversation)
 
-```ts
-interface LLMProvider {
-  name: string;
-  chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatMessage>;
-  callTool<T>(schema: JSONSchema, messages: ChatMessage[]): Promise<T>;
-}
-
-interface SearchProvider {
-  search(query: string, options?: SearchOptions): Promise<SearchResult[]>;
-}
-
-interface ProductProvider {
-  searchProducts(query: ProductSearchQuery): Promise<Product[]>;
-  getProductDetails(id: string): Promise<Product>;
-}
+```yaml
+candidate:
+  name: string
+  product_url: string
+  seller_or_manufacturer: string
+  observed_price: number | null
+  currency: string | null
+  observed_at: date
+  ships_to_region: true | false | unknown
+  criteria:
+    - requirement: string
+      importance: must | core | preference | nice
+      match: strong | partial | none | unknown
+      source_urls: string[]
+  tradeoffs: string[]
 ```
 
-Operators configure which concrete implementation of each interface to use via a config file / environment variables consumed by the Hermes agent runtime. New providers are added by implementing the interface and registering it — no core agent code changes required.
+### 9.3 Persistent preferences (Hermes memory only)
 
-## 11. Milestones / Roadmap
+- Preferred or avoided brands, common sizing, budget sensitivity, preferred materials, region, currency, recurring compatibility constraints.
+- Confirmation-gated. Sensitive health, allergy, or disability constraints are used for the current task only unless the user explicitly asks for persistent storage.
 
-### M1 — Core Agent MVP (single channel)
-- Hermes Agent configured with OpenConcierge persona and one LLM provider.
-- Requirement extraction + basic follow-up questions for 2–3 categories.
-- One search/product provider integrated.
-- Deployed on Telegram only.
+## 10. Provider Strategy
 
-### M2 — Ranking & Explanation
-- Structured scoring engine (hard filters + weighted soft scoring).
-- LLM-generated shortlist explanations with trade-offs.
-- Basic user profile persistence (SQLite).
+OpenConcierge exposes no provider interface. Search capability is selected at runtime by Hermes from the active profile's existing configuration:
 
-### M3 — Multi-Platform Expansion
-- Add WhatsApp and web chat via existing Hermes channel adapters.
-- Graceful formatting fallback for limited-rich-message platforms.
+1. Hermes `web_search` first, honoring the configured backend (Exa, Tavily, Brave, DuckDuckGo, SearXNG, Firecrawl, Parallel, xAI, etc.).
+2. Hermes `web_extract` when available for direct product-page verification.
+3. Progressive MCP/plugin tool discovery for any compatible search tool the user has installed.
+4. An installed fallback search skill if Hermes surfaces one.
+5. One already-configured fallback after a search failure. Never fan out across every provider.
 
-### M4 — Pluggability & Docs
-- Finalize LLMProvider/SearchProvider/ProductProvider interfaces.
-- Reference implementations for at least 2 LLM providers and 2 search/product providers.
-- Contributor docs: "Add a new provider," "Add a new channel," "Add a new shopping category."
+OpenConcierge never asks for a provider API key that Hermes has already configured. OpenConcierge never duplicates provider configuration.
 
-### M5 — Personalization Depth
-- Long-term preference memory reused across tasks.
-- Privacy controls: view/delete profile data.
-- Optional vector-based memory for richer personalization.
+## 11. Milestones
 
-## 12. Open Questions
+- **M1: Core profile distribution, shopping skill, and deterministic ranking.** Done.
+- **M2: Existing-profile skill installation and preference controls.** Done.
+- **M3: Cross-platform guided bootstrapper and official Hermes handoff.** Done.
+- **M4: Clean-machine validation and release hardening.** In progress.
 
-- Which default hosted search/product API should ship as the reference implementation (general web search vs. a specific marketplace API)?
-- Should checkout/purchase links be affiliate-tagged by default, and how should that be disclosed to keep the OSS project's incentives transparent?
-- How should the project handle regions/marketplaces with no public product-search API (e.g., scraping vs. official partnerships)?
-- Should category-specific question templates be community-contributed (a "category pack" system), and if so, what's the contribution format?
+Deferred expansions, each gated on a measured failure of the native design:
+
+- MCP product provider, only if web research repeatedly fails to provide sufficiently current or structured product evidence.
+- Category packs, only if general-product evaluations show recurring category-specific questioning failures.
+- Custom memory layer, only if Hermes memory cannot support accurate view, correction, and deletion of shopping preferences.
+- WhatsApp-specific onboarding, only after the Telegram and Desktop paths are reliable.
+- Affiliate links, only after a disclosure policy and user-value case are approved.
+
+## 12. Open Questions (re-scoped)
+
+The original PRD's open questions assumed OpenConcierge-owned provider adapters. With the ownership boundary in Section 6, those questions become:
+
+- What is the minimum set of Hermes provider configurations that should be exercised before declaring v1 ready? (Documented in `docs/superpowers/plans/2026-07-27-openconcierge-bootstrap-plan.md` and the roadmap's release-hardening phase.)
+- When should OpenConcierge publish a Hermes skill-only release in addition to the profile distribution? (M2 already covers this.)
+- How should the project handle regions with no public product-search API? (Documented: OpenConcierge relies on the user's Hermes search configuration; if no compatible capability exists, OpenConcierge reports it honestly rather than scraping.)
+- Should community-contributed category packs ship as separate skill directories? (Deferred until M4 evidence justifies them.)
 
 ## 13. Success Metrics (v1)
 
-- Time from first message to first product shortlist (target: under 3 minutes of active conversation).
-- % of shopping tasks completed without the user abandoning the conversation.
-- Number of follow-up questions asked per task (should trend down as personalization improves).
-- Number of community-contributed providers/channels within 3 months of open-sourcing.
+- Time from first message to first product shortlist in supported categories.
+- Percentage of shopping tasks completed without the user abandoning the conversation.
+- Number of clarifying questions asked per task, trending down as preferences persist.
+- Number of clean-machine installations completed without manual YAML editing on Windows, macOS, and Linux.
+
+## 14. References
+
+- Approved design: `docs/superpowers/specs/2026-07-27-openconcierge-hermes-addon-design.md`
+- Implementation plans: `docs/superpowers/plans/2026-07-27-openconcierge-core-distribution-plan.md`, `docs/superpowers/plans/2026-07-27-openconcierge-bootstrap-plan.md`, `docs/superpowers/plans/2026-07-27-openconcierge-implementation-roadmap.md`
+- Hermes Agent installation: https://hermes-agent.nousresearch.com/docs/getting-started/installation
+- Hermes Desktop: https://hermes-agent.nousresearch.com/docs/user-guide/desktop
+- Hermes profiles: https://hermes-agent.nousresearch.com/docs/user-guide/profiles
+- Hermes profile distributions: https://hermes-agent.nousresearch.com/docs/user-guide/profile-distributions
+- Hermes skills: https://hermes-agent.nousresearch.com/docs/user-guide/features/skills
