@@ -246,7 +246,7 @@ switch ($Mode) {
             }
         }
         else {
-            $profileCreateOutput = & $HermesBin profile create $Profile --clone-from $SourceProfile
+            & $HermesBin profile create $Profile --clone-from $SourceProfile
             if ($LASTEXITCODE -ne 0) {
                 Stop-Setup "Hermes rejected the profile create for '$Profile'." 3
             }
@@ -257,7 +257,7 @@ switch ($Mode) {
             Stop-Setup "Hermes rejected the distribution install for profile '$Profile'." 3
         }
 
-        $showOutput = & $HermesBin profile show $Profile
+        & $HermesBin profile show $Profile 2>$null
         if ($LASTEXITCODE -ne 0) {
             Stop-Setup "Hermes did not register the expected profile. Re-run with -Repair -Yes to refresh an existing OpenConcierge profile." 4
         }
@@ -267,7 +267,7 @@ switch ($Mode) {
         }
     }
     "existing" {
-        $showOutput = & $HermesBin profile show $Profile
+        & $HermesBin profile show $Profile
         if ($LASTEXITCODE -ne 0) {
             Stop-Setup "Hermes could not find profile '$Profile'." 3
         }
