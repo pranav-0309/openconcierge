@@ -1,0 +1,12 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test scratch state files
+fake_hermes_state.json
+installer_template.sh
+run.sh
+
+# Plotify cache (parent tooling artifact, not part of this repo)
+graphify-out/
