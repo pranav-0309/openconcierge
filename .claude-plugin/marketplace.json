@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "openconcierge",
+  "owner": {
+    "name": "OpenConcierge contributors"
+  },
+  "plugins": [
+    {
+      "name": "openconcierge",
+      "source": "./",
+      "description": "Research and compare products through a focused, source-backed shopping conversation.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "skills": [
+        "./harnesses/adapters/claude"
+      ]
+    }
+  ]
+}
