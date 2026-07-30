@@ -5,8 +5,6 @@ import sys
 import tempfile
 import unittest
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[1]
 CODEX = ROOT / "harnesses" / "adapters" / "codex"
 CORE = ROOT / "harnesses" / "core"
@@ -106,7 +104,7 @@ class CodexAdapterManifestTests(unittest.TestCase):
     def test_manifest_yaml_parses_with_expected_fields(self):
         manifest_path = CODEX / "manifest.yaml"
         self.assertTrue(manifest_path.is_file(), "manifest.yaml must exist")
-        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+        manifest = _parse_codex_manifest_yaml(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(manifest["name"], "openconcierge")
         self.assertEqual(manifest["harness"], "codex")
@@ -137,19 +135,83 @@ class CodexAdapterNoInstallerTests(unittest.TestCase):
 
 
 class CodexAdapterPortabilityTests(unittest.TestCase):
+    EXPECTED_COPIED_FILES = (
+        "SKILL.md",
+        "README.md",
+        "manifest.yaml",
+        "references/interviewing.md",
+        "references/memory-and-privacy.md",
+        "references/recommendations.md",
+        "references/research-and-evidence.md",
+        "scripts/rank_candidates.py",
+    )
+
     def test_adapter_is_self_contained_when_copied(self):
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "openconcierge"
             shutil.copytree(CODEX, dest)
-            self.assertTrue((dest / "SKILL.md").is_file())
-            self.assertTrue((dest / "references" / "interviewing.md").is_file())
-            self.assertTrue((dest / "scripts" / "rank_candidates.py").is_file())
+
+            missing = [rel for rel in self.EXPECTED_COPIED_FILES if not (dest / rel).is_file()]
+            self.assertEqual(missing, [], f"copytree did not preserve: {missing}")
 
             script = dest / "scripts" / "rank_candidates.py"
             self.assertEqual(subprocess.run(
                 [sys.executable, str(script), "--help"],
                 capture_output=True, text=True, check=False,
             ).returncode, 0, "rank_candidates.py --help must exit 0 from a copied adapter folder")
+
+
+def _parse_codex_manifest_yaml(text):
+    """Parse the Codex manifest.yaml shape: top-level `key: value`, lists, and one-level nested mappings."""
+    result = {}
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue
+        if ":" not in stripped:
+            i += 1
+            continue
+        key, _, value = stripped.partition(":")
+        key = key.strip()
+        value = value.strip()
+        if value:
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+                value = value[1:-1]
+            result[key] = value
+            i += 1
+        else:
+            items = []
+            nested = {}
+            i += 1
+            while i < len(lines):
+                inner = lines[i]
+                inner_stripped = inner.strip()
+                if not inner_stripped:
+                    i += 1
+                    continue
+                if not inner.startswith((" ", "\t")):
+                    break
+                if inner_stripped.startswith("- "):
+                    items.append(inner_stripped[2:].strip())
+                    i += 1
+                elif ":" in inner_stripped:
+                    sub_key, _, sub_value = inner_stripped.partition(":")
+                    sub_value = sub_value.strip()
+                    if len(sub_value) >= 2 and sub_value[0] == sub_value[-1] and sub_value[0] in ('"', "'"):
+                        sub_value = sub_value[1:-1]
+                    nested[sub_key.strip()] = sub_value
+                    i += 1
+                else:
+                    break
+            if items:
+                result[key] = items
+            elif nested:
+                result[key] = nested
+    return result
 
 
 if __name__ == "__main__":
