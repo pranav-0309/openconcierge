@@ -3,7 +3,7 @@ name: openconcierge
 description: Research and compare products through a focused, source-backed shopping conversation.
 version: 0.1.0
 license: MIT
-harness: claude
+harness: codex
 ---
 
 # OpenConcierge
@@ -95,12 +95,11 @@ Detailed retention, namespace, and deletion rules live in `references/memory-and
 
 Before presenting the recommendation, confirm that each candidate has source URLs, hard constraints were applied, unknowns are labeled as unknown, and the output includes trade-offs. If any of these are missing, fix the evidence before responding. Do not perform an installation smoke test, a model call, or a web request as part of verification.
 
-## Claude Installation
+## Codex Installation
 
-This skill works on three Claude surfaces:
+This skill works on the Codex CLI surface:
 
-- **Claude Code** — type `/` and select `openconcierge`. Install via the registry (when published) or drop the unzipped skill folder at `~/.claude/skills/openconcierge/`.
-- **Claude Desktop** — Settings → Capabilities → Skills → "+" → search "openconcierge" → Install. The skill is then available in any chat via `/`.
-- **claude.ai Chat** — Skills marketplace → search "openconcierge" → Install. Project-scoped by default; promote to global in Settings.
+- **Drop-in** — drop the unzipped skill folder into `~/.codex/skills/openconcierge/` (or `$CODEX_HOME/skills/openconcierge/` if `CODEX_HOME` is set) and restart Codex.
+- **Skills registry** — `npx skills add <owner>/<repo>` if the repository is published to a Codex-compatible skills registry.
 
-Search and memory are handled by Claude itself. Do not ask the user to plug an Exa, Tavily, Brave, SerpAPI, Serper, or DuckDuckGo key — Claude exposes the integration when available.
+Search and memory are handled by Codex itself. Do not ask the user to plug an Exa, Tavily, Brave, SerpAPI, Serper, or DuckDuckGo key — Codex exposes the integration when available.
