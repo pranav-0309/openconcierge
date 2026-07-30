@@ -1,0 +1,13 @@
+name: openconcierge
+description: Research and compare products through a focused, source-backed shopping conversation.
+version: 0.1.0
+license: MIT
+harness: claude
+surfaces:
+  - claude-code
+  - claude-desktop
+  - claude-chat
+install:
+  claude-code: "claude plugin install openconcierge"
+  claude-desktop: "Settings > Capabilities > Skills > Add > openconcierge"
+  claude-chat: "Skills marketplace > search openconcierge > Install"
