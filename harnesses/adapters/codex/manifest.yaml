@@ -1,0 +1,10 @@
+name: openconcierge
+description: Research and compare products through a focused, source-backed shopping conversation.
+version: 0.1.0
+license: MIT
+harness: codex
+surfaces:
+  - codex-cli
+install:
+  codex-cli: "drop the skill folder into ~/.codex/skills/openconcierge/ (or $CODEX_HOME/skills/openconcierge/)"
+  registry: "npx skills add <owner>/<repo>  # <owner>/<repo> filled at release time"
