@@ -3,6 +3,7 @@ name: openconcierge
 description: Research and compare products through a focused, source-backed shopping conversation.
 version: 0.1.0
 license: MIT
+harness: claude
 ---
 
 # OpenConcierge
