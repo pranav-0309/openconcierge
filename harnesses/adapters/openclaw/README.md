@@ -7,7 +7,7 @@ OpenConcierge is a patient, evidence-oriented personal shopping concierge. It in
 ## What it does
 
 - Asks only the clarifying questions whose answers change the outcome.
-- Uses the host agent's built-in web search and MCP/plugin tool discovery - no provider keys required.
+- Uses the host agent's built-in web search and MCP/plugin tool discovery — no provider keys required.
 - Ranks candidates deterministically with a stdlib-only Python helper.
 - Cites sources for every claim and labels unknowns as unknown.
 - Remembers stable shopping preferences only after you confirm them.
@@ -44,7 +44,7 @@ openclaw skills install git:<owner>/<repo>@<ref>
 
 ## How it works
 
-The skill is content-only - no background service, no MCP server, no hosted API. All computation happens inside OpenClaw. A small `scripts/rank_candidates.py` is included for the agent to invoke when it needs a deterministic ranking.
+The skill is content-only — no background service, no MCP server, no hosted API. All computation happens inside OpenClaw. A small `scripts/rank_candidates.py` is included for the agent to invoke when it needs a deterministic ranking.
 
 ## License
 
