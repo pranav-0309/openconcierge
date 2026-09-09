@@ -3,6 +3,15 @@
 All notable changes to OpenConcierge are documented here. The version here
 matches the `version` field in `skills/openconcierge/SKILL.md`.
 
+## 0.1.1 — 2026-09-09
+
+- Fix OpenCode skill-invocation bug: a dollar-amount example in SKILL.md
+  (`under $1000`) matched OpenCode's `$N` command-template placeholder
+  syntax, which swallowed the user's prompt when the skill was invoked as
+  a slash command. Reworded so no `$<digits>` sequence appears in
+  SKILL.md. Affects OpenCode only; other hosts never template skill
+  content.
+
 ## 0.1.0 — 2026-09-09
 
 Initial release.

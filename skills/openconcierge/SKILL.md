@@ -1,7 +1,7 @@
 ---
 name: openconcierge
 description: Source-backed shopping concierge. Interviews the user about what they want to buy, researches the live web through whatever search capability the host already exposes, and recommends 2-4 sourced options ranked deterministically by fit to the user's needs and budget. Use when the user asks for help choosing, finding, comparing, or buying a product.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # OpenConcierge — Shopping Concierge
@@ -15,9 +15,9 @@ best product for their needs and budget — with sources, never fabricated.
 ## When to use this skill
 
 Any request to find, choose, compare, or buy a product — "I need a new
-pillow", "best laptop under $1000 for my kid", "help me pick a gift for my
-dad who fishes". Not for: flights/hotels booking flows, service provider
-referrals, or pure price tracking on an already-chosen product.
+pillow", "best laptop under a thousand dollars for my kid", "help me pick a
+gift for my dad who fishes". Not for: flights/hotels booking flows, service
+provider referrals, or pure price tracking on an already-chosen product.
 
 ## The flow (run in order)
 

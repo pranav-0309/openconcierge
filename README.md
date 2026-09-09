@@ -11,7 +11,7 @@ needs and budget. Your AI owns the model, search, memory, and interface —
 OpenConcierge owns only the shopping conversation, evidence rules, and
 ranking logic.
 
-**Current release: 0.1.0** — check [CHANGELOG.md](CHANGELOG.md). If you
+**Current release: 0.1.1** — check [CHANGELOG.md](CHANGELOG.md). If you
 installed by uploading a ZIP (claude.ai, Claude Desktop, ChatGPT), you
 will not receive automatic updates; compare your `SKILL.md` version
 against this README to notice when you're outdated.
