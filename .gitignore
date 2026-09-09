@@ -10,3 +10,6 @@ run.sh
 
 # Plotify cache (parent tooling artifact, not part of this repo)
 graphify-out/
+
+# Release artifacts
+dist/
