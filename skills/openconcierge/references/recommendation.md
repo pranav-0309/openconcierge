@@ -79,34 +79,47 @@ Rank survivors by, in order:
 Ties at every level are broken by the next key; identical input always
 produces identical output.
 
-## Step 4 — Present 2-4 options
+## Step 4 — Present 2-4 options, short and human
 
 Present the top 2-4. Fewer than 2 only when research genuinely surfaced
 fewer viable candidates — say so rather than padding with weak ones.
 
-For each option, in order, include:
+Voice: plain, short, conversational — like texting a knowledgeable
+friend. No method talk, no scoring jargon (never mention fit_score,
+weights, strong/partial/none/unknown). No preamble about how you
+searched. No repeating the same fact in two places. Keep every wrapper
+sentence under ~20 words. The product itself is the one place you do
+NOT trim — give its full detail.
 
-- **What it is** — name and one-line description.
-- **Observed price** — with currency and the **date observed** ("$62 at
-  ExampleMart, seen 2026-09-09"). Prices are snapshots, say so if stale.
-- **Why it fits** — per-requirement rationale tied back to the brief
-  ("strong on firm support (manufacturer spec page), partial on cooling
-  (retailer listing, not verified on manufacturer page)").
-- **Trade-offs** — honest minuses: cost vs. alternatives, weaknesses
-  reviewers consistently report, heavier/uglier/less durable, whatever
-  matters.
-- **Unverified details** — anything scored `unknown`, labeled explicitly
-  as unverified ("regional availability unconfirmed — check the listing").
-- **Direct link** — the product URL you actually verified.
+Shape (adapt naturally, not a rigid template):
 
-After the options:
+I found [N] good options for you:
 
-- **Filter transparency** — one line on which notable candidates were
-  eliminated by which hard filter ("The BrandY pillow scored higher but
-  exceeded your budget by $15.")
+1. **[Name]** — 1-2 sentences on what it is and why it fits THIS user.
+   - Pros: 1-3 short bullets, only what matters to their brief.
+   - Cons: 1-2 honest minuses (cost vs. alternatives, reviewer
+     complaints, weight/looks/durability — whatever matters).
+   - $62 at ExampleMart (seen 2026-09-09) — [link]
+   - Flag anything unverified inline, briefly: "availability
+     unconfirmed — check the listing."
+
+2. ... (same shape)
+
+I'd go with [#N] because [1-2 plain reasons tied to their brief].
+
+After the options, only if needed:
+
+- **Filter transparency** — one short clause, only when a notable
+  candidate was cut ("Skipped BrandY — $15 over budget."). Omit
+  entirely if nothing notable was cut.
 - **Never fabricate.** No invented products, prices, availability,
   ratings, or specifications. Every factual claim traces to a source URL
   or is labeled unverified.
+
+Conciseness never drops required facts: every option still carries
+name + what it is, observed price + date, why it fits, honest
+trade-offs, unverified flags, and the verified direct link. Trim words,
+never facts.
 
 ## Step 5 — Feedback invite (lightweight)
 

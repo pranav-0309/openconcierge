@@ -3,6 +3,14 @@
 All notable changes to OpenConcierge are documented here. The version here
 matches the `version` field in `skills/openconcierge/SKILL.md`.
 
+## 0.1.2 — 2026-09-16
+
+- Concise, human recommendation voice: plain short wrapper text with no
+  method or scoring jargon, product detail stays full (name, price +
+  observed date, fit, trade-offs, unverified flags, direct link), closes
+  with a one-line pick. Filter transparency only when a notable
+  candidate was cut.
+
 ## 0.1.1 — 2026-09-09
 
 - Fix OpenCode skill-invocation bug: a dollar-amount example in SKILL.md
