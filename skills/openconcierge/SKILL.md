@@ -104,11 +104,14 @@ must be the same either way; only the mechanism differs.
 
 ### 6. Present 2-4 options
 
-Present 2-4 sourced options, best first. For each: what it is, the
-observed price (with date), why it fits (per-requirement rationale),
-honest trade-offs, any unverified details flagged as such, and a direct
-link. State which hard filters eliminated notable candidates. Never
-fabricate products, prices, availability, ratings, or specifications.
+Present 2-4 sourced options, best first, short and human — plain talk,
+no method or scoring jargon, no preamble. The product detail stays
+full; everything around it stays brief. For each: what it is and why
+it fits them, pros, honest cons, observed price (with date),
+unverified flags inline, and a direct link. Close with a one-line
+pick ("I'd go with #2 because..."). Mention cut candidates in one
+short clause only if notable. Never fabricate products, prices,
+availability, ratings, or specifications.
 Full presentation format: [references/recommendation.md](references/recommendation.md).
 
 ### 7. Invite feedback lightly
