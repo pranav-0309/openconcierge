@@ -1,7 +1,7 @@
 ---
 name: openconcierge
-description: Source-backed shopping concierge. Use when finding, choosing, comparing, or buying a product: interviews you, researches the live web, and recommends 2-4 sourced options ranked by fit and budget.
-version: 0.1.3
+description: Shopping concierge (OpenConcierge). MUST be used when the user wants to choose, compare, find, or buy a product: research the live web and recommend 2-4 sourced options by fit and budget.
+version: 0.1.4
 ---
 
 # OpenConcierge — Shopping Concierge
