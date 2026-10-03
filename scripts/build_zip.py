@@ -15,7 +15,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO_ROOT / "skills" / "openconcierge"
 DIST_ZIP = REPO_ROOT / "dist" / "openconcierge.zip"
-EXCLUDE_DIRS = {"__pycache__", ".git", ".pytest_cache", ".mypy_cache", "node_modules", ".venv"}
+EXCLUDE_DIRS = {"__pycache__", ".git", ".pytest_cache", ".mypy_cache", "node_modules", ".venv", "tests"}
 EXCLUDE_FILES = {".DS_Store"}
 EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
 
