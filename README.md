@@ -11,7 +11,7 @@ needs and budget. Your AI owns the model, search, memory, and interface —
 OpenConcierge owns only the shopping conversation, evidence rules, and
 ranking logic.
 
-**Current release: 0.1.3** — check [CHANGELOG.md](CHANGELOG.md). If you
+**Current release: 0.1.4** — check [CHANGELOG.md](CHANGELOG.md). If you
 installed by uploading a ZIP (claude.ai, Claude Desktop, ChatGPT), you
 will not receive automatic updates; compare your `SKILL.md` version
 against this README to notice when you're outdated.
@@ -32,6 +32,18 @@ against this README to notice when you're outdated.
    rationale, trade-offs, and direct links.
 6. Persists what it learns about you to your AI's own memory
    (write-only; never touches unrelated memories).
+
+## How to invoke it
+
+Skills are **model-invoked**: the AI decides when to use one based on its
+description. Auto-invocation is best-effort on every host and can be
+inconsistent (claude.ai in particular often waits to be told). When you
+want to be sure, just name it:
+
+> "Use OpenConcierge to find me a mechanical keyboard under $150."
+
+Typing the skill name always triggers it. You can also ask the AI
+"which skills are available?" to confirm OpenConcierge is loaded.
 
 ## Install
 

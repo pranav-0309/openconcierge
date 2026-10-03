@@ -3,6 +3,14 @@
 All notable changes to OpenConcierge are documented here. The version here
 matches the `version` field in `skills/openconcierge/SKILL.md`.
 
+## 0.1.4 — 2026-10-03
+
+- Sharpen the `description` with RFC 2119 phrasing (`MUST be used when...`)
+  and lead with the trigger, to improve auto-invocation reliability.
+- Document explicit invocation: on every host, typing the skill name
+  (e.g. "use OpenConcierge") always triggers it, and is the reliable path
+  when a host's model declines to auto-invoke. No change to behavior.
+
 ## 0.1.3 — 2026-10-03
 
 - Fit `SKILL.md` description within claude.ai's 200-character cap and move
