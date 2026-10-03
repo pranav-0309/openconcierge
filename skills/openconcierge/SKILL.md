@@ -1,7 +1,7 @@
 ---
 name: openconcierge
-description: Source-backed shopping concierge. Interviews the user about what they want to buy, researches the live web through whatever search capability the host already exposes, and recommends 2-4 sourced options ranked deterministically by fit to the user's needs and budget. Use when the user asks for help choosing, finding, comparing, or buying a product.
-version: 0.1.2
+description: Source-backed shopping concierge. Use when finding, choosing, comparing, or buying a product: interviews you, researches the live web, and recommends 2-4 sourced options ranked by fit and budget.
+version: 0.1.3
 ---
 
 # OpenConcierge — Shopping Concierge

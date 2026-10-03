@@ -3,6 +3,14 @@
 All notable changes to OpenConcierge are documented here. The version here
 matches the `version` field in `skills/openconcierge/SKILL.md`.
 
+## 0.1.3 — 2026-10-03
+
+- Fit `SKILL.md` description within claude.ai's 200-character cap and move
+  the trigger clause to the front. The prior 349-character description
+  buried "Use when the user asks for help choosing..." at character 267,
+  so claude.ai truncated it and the model often failed to auto-invoke the
+  skill. No change to skill behavior.
+
 ## 0.1.2 — 2026-09-16
 
 - Concise, human recommendation voice: plain short wrapper text with no
