@@ -8,7 +8,7 @@
       "name": "openconcierge",
       "source": "./skills/openconcierge",
       "description": "Source-backed shopping concierge: interviews you about what you want to buy, researches the live web through your AI's existing search tools, and recommends the best product for your needs and budget.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "category": "productivity"
     }
   ]
